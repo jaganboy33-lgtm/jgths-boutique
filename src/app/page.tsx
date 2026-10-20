@@ -1,17 +1,24 @@
-import { AtelierStory } from '@/components/home/atelier-story';
-import { Bestsellers } from '@/components/home/bestsellers';
-import { CustomOrderCta } from '@/components/home/custom-order-cta';
-import { FeaturedCategories } from '@/components/home/featured-categories';
-import { Hero } from '@/components/home/hero';
+import { createClient } from '@/utils/supabase/server';
+import { cookies } from 'next/headers';
 
-export default function HomePage() {
+export default async function Page() {
+  const cookieStore = await cookies();
+  const supabase = createClient(cookieStore);
+
+  const { data: todos } = await supabase.from('todos').select();
+
   return (
-    <>
-      <Hero />
-      <FeaturedCategories />
-      <Bestsellers />
-      <AtelierStory />
-      <CustomOrderCta />
-    </>
+    <main className="p-8 max-w-xl mx-auto">
+      <h1 className="text-2xl font-bold mb-4">Supabase Todos</h1>
+      <ul className="list-disc pl-5 space-y-1">
+        {todos && todos.length > 0 ? (
+          todos.map((todo) => (
+            <li key={todo.id}>{todo.name}</li>
+          ))
+        ) : (
+          <li className="text-muted-foreground">No todos found or todos table is empty.</li>
+        )}
+      </ul>
+    </main>
   );
 }
