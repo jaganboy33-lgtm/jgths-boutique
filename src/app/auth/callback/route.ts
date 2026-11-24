@@ -10,10 +10,10 @@ import { isSupabaseConfigured } from '@/lib/supabase/env';
 export async function GET(request: NextRequest) {
   const { searchParams, origin } = request.nextUrl;
   const code = searchParams.get('code');
-  const next = searchParams.get('next') ?? '/account';
+  const next = searchParams.get('next') ?? '/';
 
   // Only allow same-site relative redirects.
-  const safeNext = next.startsWith('/') && !next.startsWith('//') ? next : '/account';
+  const safeNext = next.startsWith('/') && !next.startsWith('//') ? next : '/';
 
   if (!isSupabaseConfigured) {
     return NextResponse.redirect(`${origin}/login?error=unconfigured`);

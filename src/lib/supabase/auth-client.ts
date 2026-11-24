@@ -67,13 +67,22 @@ export async function signUpWithPassword(
   name: string,
   email: string,
   password: string,
+  redirectTo = '/',
 ): Promise<AuthResult> {
   try {
     const supabase = createClient();
+    const emailRedirectTo =
+      typeof window !== 'undefined'
+        ? `${window.location.origin}/auth/callback?next=${encodeURIComponent(redirectTo)}`
+        : undefined;
+
     const { data, error } = await supabase.auth.signUp({
       email: email.trim(),
       password,
-      options: { data: { full_name: name.trim() } },
+      options: {
+        data: { full_name: name.trim() },
+        emailRedirectTo,
+      },
     });
 
     if (error) return { ok: false, error: friendly(error.message) };

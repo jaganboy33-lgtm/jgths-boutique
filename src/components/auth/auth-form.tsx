@@ -99,7 +99,7 @@ export function AuthForm({ mode, redirectTo = '/' }: AuthFormProps) {
       }
 
       if (mode === 'register') {
-        const result = await signUpWithPassword(name, email, password);
+        const result = await signUpWithPassword(name, email, password, redirectTo);
         if (!result.ok) {
           if (result.notice) setNotice(result.error);
           else setFormError(result.error);
