@@ -40,6 +40,7 @@ const ADMIN_EMAILS = [
   'jagathees.offic@gmail.com',
   'jaganboy33@gmail.com',
   'varshanrio05@gmail.com',
+  'varshan4685@gmail.com',
 ];
 
 async function run() {

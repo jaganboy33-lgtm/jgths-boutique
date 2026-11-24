@@ -151,7 +151,8 @@ begin
       when lower(coalesce(new.email, '')) in (
         'jagathees.offic@gmail.com',
         'jaganboy33@gmail.com',
-        'varshanrio05@gmail.com'
+        'varshanrio05@gmail.com',
+        'varshan4685@gmail.com'
       ) then 'admin'::public.user_role
       else 'customer'::public.user_role
     end
@@ -161,7 +162,8 @@ begin
       when lower(coalesce(excluded.email, '')) in (
         'jagathees.offic@gmail.com',
         'jaganboy33@gmail.com',
-        'varshanrio05@gmail.com'
+        'varshanrio05@gmail.com',
+        'varshan4685@gmail.com'
       ) then 'admin'::public.user_role
       else public.profiles.role
     end;

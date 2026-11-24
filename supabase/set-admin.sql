@@ -16,7 +16,8 @@ SET email_confirmed_at = COALESCE(email_confirmed_at, now()),
 WHERE lower(email) IN (
   'jagathees.offic@gmail.com',
   'jaganboy33@gmail.com',
-  'varshanrio05@gmail.com'
+  'varshanrio05@gmail.com',
+  'varshan4685@gmail.com'
 );
 
 -- 2. Promote the accounts to admin in public.profiles
@@ -25,7 +26,8 @@ SET role = 'admin'
 WHERE lower(email) IN (
   'jagathees.offic@gmail.com',
   'jaganboy33@gmail.com',
-  'varshanrio05@gmail.com'
+  'varshanrio05@gmail.com',
+  'varshan4685@gmail.com'
 );
 
 -- 3. Verify role was successfully updated
@@ -34,5 +36,6 @@ FROM public.profiles
 WHERE lower(email) IN (
   'jagathees.offic@gmail.com',
   'jaganboy33@gmail.com',
-  'varshanrio05@gmail.com'
+  'varshanrio05@gmail.com',
+  'varshan4685@gmail.com'
 );
