@@ -23,6 +23,22 @@ export type {
   PaymentStatus,
 } from './constants';
 
+export async function listBestsellers(limit = 6): Promise<AdminProduct[]> {
+  if (!isSupabaseConfigured) return [];
+
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from('products')
+    .select('*')
+    .eq('is_bestseller', true)
+    .eq('is_active', true)
+    .order('created_at', { ascending: false })
+    .limit(limit);
+
+  if (error || !data) return [];
+  return data as AdminProduct[];
+}
+
 export async function listProducts(): Promise<AdminProduct[]> {
   if (!isSupabaseConfigured) return [];
 

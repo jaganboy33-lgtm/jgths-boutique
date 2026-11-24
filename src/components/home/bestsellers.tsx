@@ -1,85 +1,42 @@
-'use client';
-
-import { useRef } from 'react';
-import Link from 'next/link';
-import { ArrowRight, ChevronRight } from 'lucide-react';
-
-import { ProductCard } from '@/components/product/product-card';
-import { Button } from '@/components/ui/button';
-import { SectionHeading } from '@/components/ui/section-heading';
+import { listBestsellers } from '@/lib/admin/queries';
 import { getBestsellers } from '@/lib/catalog';
+import { isSupabaseConfigured } from '@/lib/supabase/env';
+import type { AdminProduct } from '@/lib/admin/constants';
+import { BestsellersRail } from './bestsellers-rail';
 
-export function Bestsellers() {
-  const railRef = useRef<HTMLUListElement>(null);
-  const products = getBestsellers(6);
+/**
+ * Server component — fetches bestsellers from Supabase when configured,
+ * falls back to the static catalogue otherwise.
+ */
+export async function Bestsellers() {
+  let products: AdminProduct[] = [];
 
-  function scrollRail(direction: 1 | -1) {
-    const rail = railRef.current;
-    if (!rail) return;
-    const firstCard = rail.querySelector('li');
-    const cardWidth = firstCard ? firstCard.getBoundingClientRect().width + 20 : 320;
-    const cardsToScroll = rail.clientWidth > 900 ? 2 : 1;
-    rail.scrollBy({
-      left: direction * cardWidth * cardsToScroll,
-      behavior: 'smooth',
-    });
+  if (isSupabaseConfigured) {
+    products = await listBestsellers(6);
   }
 
-  return (
-    <section className="w-full max-w-full overflow-hidden bg-ivory-200/60 py-18 sm:py-24">
-      <div className="mx-auto max-w-[1400px] px-6 sm:px-8 lg:px-10">
-        <div className="flex flex-wrap items-end justify-between gap-6">
-          <SectionHeading
-            eyebrow="Most loved"
-            title="Bestsellers"
-            description="The pieces our clients return for — and the ones they photograph the most."
-          />
+  // Fall back to static catalog if DB is empty or Supabase not configured
+  if (products.length === 0) {
+    products = getBestsellers(6).map((p) => ({
+      id: p.id,
+      slug: p.slug,
+      title: p.title,
+      subtitle: p.subtitle ?? null,
+      category_slug: p.category,
+      price: p.price,
+      compare_at_price: p.compareAtPrice ?? null,
+      stock_count: 10,
+      is_made_to_order: Boolean(p.madeToOrder),
+      fabric: p.fabric ?? null,
+      embroidery: p.embroidery ?? null,
+      description: p.description ?? null,
+      image_urls: p.images,
+      is_bestseller: true,
+      is_active: true,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    }));
+  }
 
-          <div className="flex items-center gap-3">
-            <div className="hidden items-center gap-2 sm:flex">
-              <Button
-                type="button"
-                variant="outline"
-                size="icon"
-                onClick={() => scrollRail(-1)}
-                aria-label="Previous products"
-                className="bg-card"
-              >
-                <ChevronRight className="size-4 rotate-180" />
-              </Button>
-              <Button
-                type="button"
-                variant="outline"
-                size="icon"
-                onClick={() => scrollRail(1)}
-                aria-label="Next products"
-                className="bg-card"
-              >
-                <ChevronRight className="size-4" />
-              </Button>
-            </div>
-
-            <Button asChild variant="link" className="gap-2 px-0">
-              <Link href="/shop">
-                View all
-                <ArrowRight className="size-4" />
-              </Link>
-            </Button>
-          </div>
-        </div>
-
-        {/* Horizontal rail — aligned with container with generous left padding */}
-        <ul
-          ref={railRef}
-          className="no-scrollbar mt-11 flex w-full max-w-full snap-x snap-mandatory gap-5 overflow-x-auto pb-4 pt-1"
-        >
-          {products.map((product) => (
-            <li key={product.id} className="flex shrink-0 snap-start">
-              <ProductCard product={product} fixedWidth />
-            </li>
-          ))}
-        </ul>
-      </div>
-    </section>
-  );
+  return <BestsellersRail products={products} />;
 }
