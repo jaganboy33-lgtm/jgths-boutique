@@ -11,7 +11,14 @@ export const metadata: Metadata = {
   robots: { index: false, follow: true },
 };
 
-export default function LoginPage() {
+type PageProps = {
+  searchParams: Promise<{ next?: string }>;
+};
+
+export default async function LoginPage({ searchParams }: PageProps) {
+  const { next } = await searchParams;
+  const redirectTo = next?.startsWith('/') && !next.startsWith('//') ? next : '/';
+
   return (
     <AuthShell
       eyebrow="Welcome back"
@@ -21,7 +28,7 @@ export default function LoginPage() {
         <p className="text-sm text-muted-foreground">
           New to the boutique?{' '}
           <Link
-            href="/register"
+            href={next ? `/register?next=${encodeURIComponent(next)}` : '/register'}
             className="text-foreground underline underline-offset-4 transition-colors hover:text-gold-700"
           >
             Create an account
@@ -29,7 +36,7 @@ export default function LoginPage() {
         </p>
       }
     >
-      <AuthForm mode="login" />
+      <AuthForm mode="login" redirectTo={redirectTo} />
     </AuthShell>
   );
 }

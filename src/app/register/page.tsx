@@ -11,7 +11,14 @@ export const metadata: Metadata = {
   robots: { index: false, follow: true },
 };
 
-export default function RegisterPage() {
+type PageProps = {
+  searchParams: Promise<{ next?: string }>;
+};
+
+export default async function RegisterPage({ searchParams }: PageProps) {
+  const { next } = await searchParams;
+  const redirectTo = next?.startsWith('/') && !next.startsWith('//') ? next : '/';
+
   return (
     <AuthShell
       eyebrow="Join the atelier"
@@ -21,7 +28,7 @@ export default function RegisterPage() {
         <p className="text-sm text-muted-foreground">
           Already have an account?{' '}
           <Link
-            href="/login"
+            href={next ? `/login?next=${encodeURIComponent(next)}` : '/login'}
             className="text-foreground underline underline-offset-4 transition-colors hover:text-gold-700"
           >
             Sign in
@@ -29,7 +36,7 @@ export default function RegisterPage() {
         </p>
       }
     >
-      <AuthForm mode="register" />
+      <AuthForm mode="register" redirectTo={redirectTo} />
     </AuthShell>
   );
 }

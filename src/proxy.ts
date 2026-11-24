@@ -5,22 +5,28 @@ import { SUPABASE_ANON_KEY, SUPABASE_URL, isSupabaseConfigured } from '@/lib/sup
 import { isAdminEmail } from '@/lib/admin/constants';
 
 const ADMIN_LOGIN = '/admin/login';
+const PUBLIC_AUTH_PATHS = [
+  '/login',
+  '/register',
+  '/forgot-password',
+  '/reset-password',
+  '/auth/callback',
+  ADMIN_LOGIN,
+];
 
 /**
- * Refreshes the Supabase auth cookies on every navigation and enforces the
- * admin-only gate on `/admin`.
- *
- * The gate is defence in depth, not the only defence: every admin table is also
- * protected by Row Level Security, so a forged client cannot read or write
- * admin data even if this check were bypassed.
+ * Refreshes Supabase auth cookies, enforces authentication across the boutique,
+ * and guards admin-only routes.
  */
 export async function proxy(request: NextRequest) {
-  const { pathname } = request.nextUrl;
+  const { pathname, search } = request.nextUrl;
   const isAdminRoute = pathname.startsWith('/admin');
   const isAdminLogin = pathname === ADMIN_LOGIN;
+  const isPublicAuthRoute = PUBLIC_AUTH_PATHS.some(
+    (path) => pathname === path || pathname.startsWith(path + '/')
+  );
 
-  // Without credentials there is nothing to authenticate against. Send admin
-  // traffic to the setup-aware login screen rather than letting it render.
+  // Without credentials there is nothing to authenticate against.
   if (!isSupabaseConfigured) {
     if (isAdminRoute && !isAdminLogin) {
       const url = new URL(ADMIN_LOGIN, request.url);
@@ -52,11 +58,40 @@ export async function proxy(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (!isAdminRoute) return response;
+  // If visitor is NOT authenticated:
+  if (!user) {
+    if (isAdminRoute) {
+      if (isAdminLogin) return response;
+      const url = new URL(ADMIN_LOGIN, request.url);
+      url.searchParams.set('next', pathname + search);
+      return NextResponse.redirect(url);
+    }
 
-  // Resolve the role once — needed by both the gate and the login redirect.
-  let isAdmin = false;
-  if (user) {
+    // Public auth routes (login, register, forgot-password, reset-password, callback)
+    if (isPublicAuthRoute) {
+      return response;
+    }
+
+    // All boutique storefront routes require login first.
+    // Preserve what the user clicked/requested in `next` so they are returned there.
+    const url = new URL('/login', request.url);
+    url.searchParams.set('next', pathname + search);
+    return NextResponse.redirect(url);
+  }
+
+  // If visitor IS authenticated:
+  // If they visit the customer login or register page, send them to destination or home.
+  if (pathname === '/login' || pathname === '/register') {
+    const nextParam = request.nextUrl.searchParams.get('next');
+    const safeNext = nextParam && nextParam.startsWith('/') && !nextParam.startsWith('//')
+      ? nextParam
+      : '/';
+    return NextResponse.redirect(new URL(safeNext, request.url));
+  }
+
+  // Handle /admin restricted area
+  if (isAdminRoute) {
+    let isAdmin = false;
     if (isAdminEmail(user.email)) {
       isAdmin = true;
     } else {
@@ -67,24 +102,18 @@ export async function proxy(request: NextRequest) {
         .maybeSingle();
       isAdmin = profile?.role === 'admin';
     }
-  }
 
-  // Already signed in as an admin — no reason to see the login screen.
-  if (isAdminLogin) {
-    if (isAdmin) return NextResponse.redirect(new URL('/admin', request.url));
-    return response;
-  }
+    // Already signed in as admin — skip the login screen
+    if (isAdminLogin) {
+      if (isAdmin) return NextResponse.redirect(new URL('/admin', request.url));
+      return response;
+    }
 
-  if (!user) {
-    const url = new URL(ADMIN_LOGIN, request.url);
-    url.searchParams.set('next', pathname);
-    return NextResponse.redirect(url);
-  }
-
-  if (!isAdmin) {
-    const url = new URL(ADMIN_LOGIN, request.url);
-    url.searchParams.set('error', 'not-admin');
-    return NextResponse.redirect(url);
+    if (!isAdmin) {
+      const url = new URL(ADMIN_LOGIN, request.url);
+      url.searchParams.set('error', 'not-admin');
+      return NextResponse.redirect(url);
+    }
   }
 
   return response;

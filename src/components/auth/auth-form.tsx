@@ -35,7 +35,7 @@ type AuthFormProps = {
   redirectTo?: string;
 };
 
-export function AuthForm({ mode, redirectTo = '/account' }: AuthFormProps) {
+export function AuthForm({ mode, redirectTo = '/' }: AuthFormProps) {
   const router = useRouter();
 
   const [name, setName] = useState('');

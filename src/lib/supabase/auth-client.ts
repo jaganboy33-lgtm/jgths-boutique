@@ -123,6 +123,9 @@ export async function signOutUser(): Promise<void> {
   if (!isSupabaseConfigured) return;
   try {
     await createClient().auth.signOut();
+    if (typeof window !== 'undefined') {
+      window.location.href = '/login';
+    }
   } catch {
     // Already signed out or unconfigured — nothing to do.
   }
