@@ -5,6 +5,7 @@ import { revalidatePath } from 'next/cache';
 import { createClient } from '@/lib/supabase/server';
 import { isSupabaseConfigured, isDev } from '@/lib/supabase/env';
 import { slugify } from '@/lib/utils';
+import { isAdminEmail } from './constants';
 import type { OrderStatus, PaymentStatus } from './queries';
 
 export type ActionResult = { ok: true } | { ok: false; error: string };
@@ -49,7 +50,7 @@ async function requireAdmin() {
 
   if (!user) return { ok: false as const, error: 'You must be signed in.' };
 
-  const isOwnerEmail = user.email?.toLowerCase().trim() === 'jagathees.offic@gmail.com';
+  const isOwnerEmail = isAdminEmail(user.email);
 
   if (!isOwnerEmail) {
     const { data: profile } = await supabase

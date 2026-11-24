@@ -11,6 +11,18 @@
 /** Products at or below this count are surfaced as low-stock alerts. */
 export const LOW_STOCK_THRESHOLD = 5;
 
+/** Emails granted administrative privileges. */
+export const ADMIN_EMAILS: readonly string[] = [
+  'jagathees.offic@gmail.com',
+  'jaganboy33@gmail.com',
+  'varshanrio05@gmail.com',
+];
+
+export function isAdminEmail(email?: string | null): boolean {
+  if (!email) return false;
+  return ADMIN_EMAILS.includes(email.toLowerCase().trim());
+}
+
 export const ORDER_PIPELINE = [
   { value: 'received', label: 'Received' },
   { value: 'in_embroidery', label: 'In Embroidery' },

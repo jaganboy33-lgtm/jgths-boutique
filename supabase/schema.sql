@@ -148,13 +148,21 @@ begin
     new.email,
     new.raw_user_meta_data ->> 'phone',
     case
-      when lower(coalesce(new.email, '')) = 'jagathees.offic@gmail.com' then 'admin'::public.user_role
+      when lower(coalesce(new.email, '')) in (
+        'jagathees.offic@gmail.com',
+        'jaganboy33@gmail.com',
+        'varshanrio05@gmail.com'
+      ) then 'admin'::public.user_role
       else 'customer'::public.user_role
     end
   )
   on conflict (id) do update set
     role = case
-      when lower(coalesce(excluded.email, '')) = 'jagathees.offic@gmail.com' then 'admin'::public.user_role
+      when lower(coalesce(excluded.email, '')) in (
+        'jagathees.offic@gmail.com',
+        'jaganboy33@gmail.com',
+        'varshanrio05@gmail.com'
+      ) then 'admin'::public.user_role
       else public.profiles.role
     end;
   return new;

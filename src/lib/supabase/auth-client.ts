@@ -5,6 +5,9 @@ import type { User } from '@supabase/supabase-js';
 
 import { createClient } from './client';
 import { isSupabaseConfigured } from './env';
+import { ADMIN_EMAILS, isAdminEmail } from '@/lib/admin/constants';
+
+export { ADMIN_EMAILS, isAdminEmail };
 
 export type AuthResult =
   | { ok: true }
@@ -132,13 +135,13 @@ export function displayName(user: User | null): string {
   return meta?.full_name?.trim() || user.email || 'Guest';
 }
 
-export const ADMIN_EMAIL = 'jagathees.offic@gmail.com';
+export const ADMIN_EMAIL = ADMIN_EMAILS[0];
 
 /**
  * Checks whether a user ID or user email belongs to an administrator.
  */
 export async function checkIsAdmin(userId: string, email?: string): Promise<boolean> {
-  if (email && email.toLowerCase().trim() === ADMIN_EMAIL.toLowerCase()) return true;
+  if (isAdminEmail(email)) return true;
   if (!isSupabaseConfigured || !userId) return false;
   try {
     const supabase = createClient();
@@ -183,7 +186,7 @@ export function useSession() {
 
       if (active) setUser(currentUser);
 
-      const isOwnerEmail = currentUser.email?.toLowerCase().trim() === ADMIN_EMAIL.toLowerCase();
+      const isOwnerEmail = isAdminEmail(currentUser.email);
       if (isOwnerEmail) {
         if (active) {
           setIsAdmin(true);

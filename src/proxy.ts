@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
 
 import { SUPABASE_ANON_KEY, SUPABASE_URL, isSupabaseConfigured } from '@/lib/supabase/env';
+import { isAdminEmail } from '@/lib/admin/constants';
 
 const ADMIN_LOGIN = '/admin/login';
 
@@ -56,7 +57,7 @@ export async function proxy(request: NextRequest) {
   // Resolve the role once — needed by both the gate and the login redirect.
   let isAdmin = false;
   if (user) {
-    if (user.email?.toLowerCase().trim() === 'jagathees.offic@gmail.com') {
+    if (isAdminEmail(user.email)) {
       isAdmin = true;
     } else {
       const { data: profile } = await supabase
