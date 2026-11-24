@@ -36,6 +36,9 @@ function friendly(message: string): string {
   if (normalised.includes('unable to validate email')) {
     return 'That email address does not look valid.';
   }
+  if (normalised.includes('error sending recovery email') || normalised.includes('error sending email')) {
+    return 'Unable to send recovery email. The hourly email limit may have been reached, or custom SMTP is not configured.';
+  }
 
   return message;
 }
